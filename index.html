@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complementary Color Picker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .color-container {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+        }
+        .color-box {
+            width: 100px;
+            height: 100px;
+            border: 1px solid #000;
+        }
+        .color-label {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Complementary Color Picker</h1>
+    <label for="baseColor">Base Color: </label>
+    <input type="color" id="baseColor" value="#ff0000">
+    <br><br>
+    <div id="colorDisplay">
+        <div class="color-container">
+            <div class="color-box" id="color1"></div>
+            <div class="color-label">Base Color</div>
+        </div>
+        <div class="color-container">
+            <div class="color-box" id="color2"></div>
+            <div class="color-label">Complementary Color</div>
+        </div>
+        <div class="color-container">
+            <div class="color-box" id="color3"></div>
+            <div class="color-label">Additional Color</div>
+        </div>
+    </div>
+    
+    <script>
+        const baseColorInput = document.getElementById('baseColor');
+        const color1Box = document.getElementById('color1');
+        const color2Box = document.getElementById('color2');
+        const color3Box = document.getElementById('color3');
+
+        function hexToRgb(hex) {
+            const bigint = parseInt(hex.slice(1), 16);
+            return {
+                r: (bigint >> 16) & 255,
+                g: (bigint >> 8) & 255,
+                b: bigint & 255
+            };
+        }
+
+        function rgbToHex(r, g, b) {
+            return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1).toUpperCase()}`;
+        }
+
+        function generateComplementaryColors(baseColor) {
+            const { r, g, b } = hexToRgb(baseColor);
+            return [
+                baseColor,
+                rgbToHex(255 - r, 255 - g, 255 - b),
+                rgbToHex((r + 128) % 256, (g + 128) % 256, (b + 128) % 256)
+            ];
+        }
+
+        function updateColors() {
+            const baseColor = baseColorInput.value;
+            const [color1, color2, color3] = generateComplementaryColors(baseColor);
+            color1Box.style.backgroundColor = color1;
+            color2Box.style.backgroundColor = color2;
+            color3Box.style.backgroundColor = color3;
+        }
+
+        baseColorInput.addEventListener('input', updateColors);
+
+        // Initial update
+        updateColors();
+    </script>
+</body>
+</html>
