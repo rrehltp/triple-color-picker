@@ -3,89 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complementary Color Picker</title>
+    <title>Tetrad Color Scheme Generator with Tints</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
         }
-        .color-container {
-            display: inline-block;
-            margin: 10px;
-            text-align: center;
-            text-align: -webkit-center;
+        .color-display {
+            display: flex;
+            flex-direction: row;
+            margin-top: 20px;
         }
         .color-box {
             width: 100px;
             height: 100px;
-            border: 1px solid #000;
+            margin: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border-radius: 5px;
+            position: relative;
         }
-        .color-label {
-            margin-top: 10px;
+        .toggle-button {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 2px 5px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+        #primary-color {
+            margin: 20px 0;
         }
     </style>
 </head>
 <body>
-    <h1>Complementary Color Picker</h1>
-    <label for="baseColor">Base Color: </label>
-    <input type="color" id="baseColor" value="#ff0000">
-    <br><br>
-    <div id="colorDisplay">
-        <div class="color-container">
-            <div class="color-box" id="color1"></div>
-            <div class="color-label">Base Color</div>
-        </div>
-        <div class="color-container">
-            <div class="color-box" id="color2"></div>
-            <div class="color-label">Background Color</div>
-        </div>
-        <div class="color-container">
-            <div class="color-box" id="color3"></div>
-            <div class="color-label">Additional Color</div>
-        </div>
-    </div>
-    
+    <h1>Tetrad Color Scheme Generator with Tints</h1>
+    <input type="color" id="primary-color" value="#ff0000">
+    <div class="color-display" id="color-display"></div>
+
     <script>
-        const baseColorInput = document.getElementById('baseColor');
-        const color1Box = document.getElementById('color1');
-        const color2Box = document.getElementById('color2');
-        const color3Box = document.getElementById('color3');
+        document.getElementById('primary-color').addEventListener('input', generateTetrad);
+
+        function generateTetrad() {
+            const primaryColor = document.getElementById('primary-color').value;
+            const colors = getTetradColors(primaryColor);
+            displayColors(colors);
+        }
 
         function hexToRgb(hex) {
-            const bigint = parseInt(hex.slice(1), 16);
-            return {
-                r: (bigint >> 16) & 255,
-                g: (bigint >> 8) & 255,
-                b: bigint & 255
-            };
+            let bigint = parseInt(hex.slice(1), 16);
+            let r = (bigint >> 16) & 255;
+            let g = (bigint >> 8) & 255;
+            let b = bigint & 255;
+            return [r, g, b];
         }
 
         function rgbToHex(r, g, b) {
-            return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1).toUpperCase()}`;
+            return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
         }
 
-        function generateComplementaryColors(baseColor) {
-            const { r, g, b } = hexToRgb(baseColor);
-            return [
-                baseColor,
-                rgbToHex(255 - r, 255 - g, 255 - b),
-                rgbToHex((r + 128) % 256, (g + 128) % 256, (b + 128) % 256)
-            ];
+        function rgbToHsl(r, g, b) {
+            r /= 255;
+            g /= 255;
+            b /= 255;
+            let max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+            if (max === min) {
+                h = s = 0;
+            } else {
+                let d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+            return [h * 360, s, l];
         }
 
-        function updateColors() {
-            const baseColor = baseColorInput.value;
-            const [color1, color2, color3] = generateComplementaryColors(baseColor);
-            color1Box.style.backgroundColor = color1;
-            color2Box.style.backgroundColor = color2;
-            color3Box.style.backgroundColor = color3;
+        function hslToRgb(h, s, l) {
+            let r, g, b;
+            if (s === 0) {
+                r = g = b = l;
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                }
+                let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                let p = 2 * l - q;
+                h /= 360;
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+            }
+            return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
         }
 
-        baseColorInput.addEventListener('input', updateColors);
+        function getTetradColors(primaryColor) {
+            let [r, g, b] = hexToRgb(primaryColor);
+            let [h, s, l] = rgbToHsl(r, g, b);
 
-        // Initial update
-        updateColors();
+            let colors = [];
+            for (let i = 0; i < 4; i++) {
+                let newH = (h + (i * 90)) % 360;
+                let [newR, newG, newB] = hslToRgb(newH, s, l);
+                colors.push(rgbToHex(newR, newG, newB));
+            }
+            return colors;
+        }
+
+        function getContrastColor(hex) {
+            let [r, g, b] = hexToRgb(hex);
+            let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+            return (yiq >= 128) ? '#000000' : '#FFFFFF';
+        }
+
+        function getTintColor(hex) {
+            let [r, g, b] = hexToRgb(hex);
+            r = Math.min(255, r + (255 - r) * 0.5);
+            g = Math.min(255, g + (255 - g) * 0.5);
+            b = Math.min(255, b + (255 - b) * 0.5);
+            return rgbToHex(r, g, b);
+        }
+
+        function displayColors(colors) {
+            const colorDisplay = document.getElementById('color-display');
+            colorDisplay.innerHTML = '';
+            colors.forEach(color => {
+                const colorBox = createColorBox(color);
+                colorDisplay.appendChild(colorBox);
+            });
+        }
+
+        function createColorBox(color) {
+            const colorBox = document.createElement('div');
+            colorBox.className = 'color-box';
+            colorBox.style.backgroundColor = color;
+            colorBox.style.color = getContrastColor(color);
+            colorBox.innerText = color;
+
+            const toggleButton = document.createElement('button');
+            toggleButton.className = 'toggle-button';
+            const tintColor = getTintColor(color);
+            toggleButton.style.backgroundColor = tintColor;
+            toggleButton.style.color = getContrastColor(tintColor);
+            toggleButton.innerText = tintColor;
+            toggleButton.addEventListener('click', () => {
+                const currentColor = colorBox.style.backgroundColor;
+                const hexColor = rgbToHex(...currentColor.match(/\d+/g).map(Number));
+                const contrastColor = getContrastColor(hexColor);
+                if (colorBox.innerText === color) {
+                    colorBox.style.backgroundColor = tintColor;
+                    colorBox.style.color = getContrastColor(tintColor);
+                    colorBox.innerText = tintColor;
+                } else {
+                    colorBox.style.backgroundColor = color;
+                    colorBox.style.color = contrastColor;
+                    colorBox.innerText = color;
+                }
+            });
+
+            colorBox.appendChild(toggleButton);
+            return colorBox;
+        }
+
+        generateTetrad();
     </script>
 </body>
 </html>
