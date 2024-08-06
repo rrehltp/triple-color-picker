@@ -132,7 +132,7 @@
 
             const newS = l > 50 ? s - 30 : s + 30;
             const newL = s > 50 ? l - 30 : l + 30;
-            let colors = [60, 120, 240, 300].map((amt) => {
+            let colors = [60, 120, 240].map((amt) => {
                 let newH = (h + amt) % 360;
                 let [newR, newG, newB] = hslToRgb(newH, newS, newL);
                 return rgbToHex(newR, newG, newB);
