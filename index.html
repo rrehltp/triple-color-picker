@@ -119,12 +119,11 @@
             let [r, g, b] = hexToRgb(primaryColor);
             let [h, s, l] = rgbToHsl(r, g, b);
 
-            let colors = [];
-            for (let i = 0; i < 4; i++) {
-                let newH = (h + (i * 90)) % 360;
+            let colors = [0, 180, 60, 240].map((amt) => {
+                let newH = (h + amt) % 360;
                 let [newR, newG, newB] = hslToRgb(newH, s, l);
-                colors.push(rgbToHex(newR, newG, newB));
-            }
+                return rgbToHex(newR, newG, newB);
+            })
             return colors;
         }
 
