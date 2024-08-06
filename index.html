@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tetrad Color Scheme Generator with Tints</title>
+    <title>Tetrad Color Scheme Generator with Tints or Shade</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -134,11 +134,18 @@
             return (yiq >= 128) ? '#000000' : '#FFFFFF';
         }
 
-        function getTintColor(hex) {
+        function getTintOrShadeColor(hex) {
             let [r, g, b] = hexToRgb(hex);
-            r = Math.min(255, r + (255 - r) * 0.5);
-            g = Math.min(255, g + (255 - g) * 0.5);
-            b = Math.min(255, b + (255 - b) * 0.5);
+            const amt = 2.25 * 40;
+            if((r+g+b) > 255*3/2) {
+                r = Math.max(0, r - amt);
+                g = Math.max(0, g - amt);
+                b = Math.max(0, b - amt);
+            } else {
+                r = Math.min(255, r + amt);
+                g = Math.min(255, g + amt);
+                b = Math.min(255, b + amt);
+            }
             return rgbToHex(r, g, b);
         }
 
@@ -160,25 +167,11 @@
 
             const toggleButton = document.createElement('button');
             toggleButton.className = 'toggle-button';
-            const tintColor = getTintColor(color);
+            const tintColor = getTintOrShadeColor(color);
             toggleButton.style.backgroundColor = tintColor;
             toggleButton.style.color = getContrastColor(tintColor);
             toggleButton.innerText = tintColor;
-            toggleButton.addEventListener('click', () => {
-                const currentColor = colorBox.style.backgroundColor;
-                const hexColor = rgbToHex(...currentColor.match(/\d+/g).map(Number));
-                const contrastColor = getContrastColor(hexColor);
-                if (colorBox.innerText === color) {
-                    colorBox.style.backgroundColor = tintColor;
-                    colorBox.style.color = getContrastColor(tintColor);
-                    colorBox.innerText = tintColor;
-                } else {
-                    colorBox.style.backgroundColor = color;
-                    colorBox.style.color = contrastColor;
-                    colorBox.innerText = color;
-                }
-            });
-
+            
             colorBox.appendChild(toggleButton);
             return colorBox;
         }
