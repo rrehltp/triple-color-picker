@@ -57,11 +57,11 @@
 
         function generateTetrad() {
             const primaryColor = document.getElementById('primary-color').value;
-            const colors = [ ...generateComplementaryColors(primaryColor), ...getTetradColors(primaryColor)];
+            const colors = [ ...generateComplementaryColors(primaryColor), ...generateTetradColors(primaryColor)];
             displayColors(colors);
         }
 
-        function hexToRgb(hex) {
+        function hex2Rgb(hex) {
             let bigint = parseInt(hex.slice(1), 16);
             let r = (bigint >> 16) & 255;
             let g = (bigint >> 8) & 255;
@@ -69,11 +69,11 @@
             return [r, g, b];
         }
 
-        function rgbToHex(r, g, b) {
+        function rgb2Hex(r, g, b) {
             return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase().slice(0, 6)}`;
         }
 
-        function rgbToHsl(r, g, b) {
+        function rgb2Hsl(r, g, b) {
             r /= 255;
             g /= 255;
             b /= 255;
@@ -94,7 +94,7 @@
             return [h * 360, s, l];
         }
 
-        function hslToRgb(h, s, l) {
+        function hsl2Rgb(h, s, l) {
             let r, g, b;
             if (s === 0) {
                 r = g = b = l;
@@ -118,36 +118,36 @@
         }
 
         function generateComplementaryColors(primaryColor) {
-            const [ r, g, b ] = hexToRgb(primaryColor);
+            const [ r, g, b ] = hex2Rgb(primaryColor);
             let colors = [
                 primaryColor,
-                rgbToHex(255 - r, 255 - g, 255 - b),
-                rgbToHex((r + 128) % 256, (g + 128) % 256, (b + 128) % 256)
+                rgb2Hex(255 - r, 255 - g, 255 - b),
+                rgb2Hex((r + 128) % 256, (g + 128) % 256, (b + 128) % 256)
             ];
             return colors;
         }
-        function getTetradColors(primaryColor) {
-            let [r, g, b] = hexToRgb(primaryColor);
-            let [h, s, l] = rgbToHsl(r, g, b);
+        function generateTetradColors(primaryColor) {
+            let [r, g, b] = hex2Rgb(primaryColor);
+            let [h, s, l] = rgb2Hsl(r, g, b);
 
             const newS = l > 50 ? s - 30 : s + 30;
             const newL = s > 50 ? l - 30 : l + 30;
             let colors = [60, 120, 240].map((amt) => {
                 let newH = (h + amt) % 360;
-                let [newR, newG, newB] = hslToRgb(newH, newS, newL);
-                return rgbToHex(newR, newG, newB);
+                let [newR, newG, newB] = hsl2Rgb(newH, newS, newL);
+                return rgb2Hex(newR, newG, newB);
             })
             return colors;
         }
 
         function getContrastColor(hex) {
-            let [r, g, b] = hexToRgb(hex);
+            let [r, g, b] = hex2Rgb(hex);
             let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
             return (yiq >= 128) ? '#000000' : '#FFFFFF';
         }
 
         function getTintOrShadeColor(hex) {
-            let [r, g, b] = hexToRgb(hex);
+            let [r, g, b] = hex2Rgb(hex);
             const amt = 2.25 * 40;
             if((r+g+b) > 255*3/2) {
                 r = Math.max(0, r - amt);
@@ -158,7 +158,7 @@
                 g = Math.min(255, g + amt);
                 b = Math.min(255, b + amt);
             }
-            return rgbToHex(r, g, b);
+            return rgb2Hex(r, g, b);
         }
 
         function displayColors(colors) {
